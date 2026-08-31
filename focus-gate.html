@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Gate</title>
+<style>
+  :root {
+    --bg: #111318;
+    --card: #1b1e26;
+    --accent: #5b8cff;
+    --accent-dim: #33405e;
+    --text: #eef0f4;
+    --text-dim: #9aa1b1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 40px 36px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  h1 {
+    font-size: 1.3rem;
+    margin: 0 0 8px;
+    font-weight: 600;
+  }
+  p.msg {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin: 0 0 28px;
+    line-height: 1.4;
+  }
+  .timer {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 8px 0 28px;
+    font-variant-numeric: tabular-nums;
+  }
+  .notion-link {
+    display: inline-block;
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    transition: opacity 0.15s ease;
+  }
+  .notion-link:hover { opacity: 0.9; }
+  button#unlock {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: not-allowed;
+    background: var(--accent-dim);
+    color: var(--text-dim);
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  button#unlock.ready {
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+  }
+  button#unlock.ready:hover { opacity: 0.9; }
+  .dest {
+    margin-top: 20px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Not yet.</h1>
+    <p class="msg" id="customMsg">Keep pushing. Check your tasks first — then decide if this is really the break you want.</p>
+    <div class="timer" id="timer">00:30</div>
+    <a class="notion-link" id="notionLink" href="https://app.notion.com/p/eeefdb0401574f09a8023d8ed3581a01?v=3a0f8766e89f810eac10000c9120dd27" target="_blank" rel="noopener">
+      Check your tasks in Notion →
+    </a>
+    <button id="unlock" disabled>Tasks done</button>
+    <div class="dest" id="destDisplay"></div>
+  </div>
+
+<script>
+  // ---- config ----
+  const DELAY_SECONDS = 30;
+
+  // ---- read destination from query string ----
+  // LeechBlock appends the originally-blocked URL; adjust the param name
+  // below if your LeechBlock version uses a different key (check the URL
+  // it redirects you to the first time it triggers).
+  const params = new URLSearchParams(window.location.search);
+  let dest = params.get("dest") || params.get("url") || params.get("target");
+
+  // Fallback: if no destination param is found, just don't wire the button
+  // to redirect anywhere destructive.
+  if (dest && !/^https?:\/\//i.test(dest)) {
+    dest = "https://" + dest;
+  }
+
+  const destDisplay = document.getElementById("destDisplay");
+  destDisplay.textContent = dest ? "Waiting to unlock: " + dest : "";
+
+  // ---- countdown ----
+  let remaining = DELAY_SECONDS;
+  const timerEl = document.getElementById("timer");
+  const unlockBtn = document.getElementById("unlock");
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60).toString().padStart(2, "0");
+    const sec = (s % 60).toString().padStart(2, "0");
+    return m + ":" + sec;
+  }
+
+  timerEl.textContent = formatTime(remaining);
+
+  const interval = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      remaining = 0;
+      clearInterval(interval);
+      unlockBtn.disabled = false;
+      unlockBtn.classList.add("ready");
+      unlockBtn.textContent = "Tasks done";
+    }
+    timerEl.textContent = formatTime(remaining);
+  }, 1000);
+
+  // ---- unlock button ----
+  unlockBtn.addEventListener("click", () => {
+    if (unlockBtn.disabled) return;
+    if (dest) {
+      window.location.href = dest;
+    } else {
+      // No destination found in the URL — nothing safe to redirect to.
+      unlockBtn.textContent = "No destination found";
+    }
+  });
+</script>
+</body>
+</html>
