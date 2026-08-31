@@ -177,8 +177,8 @@
 <body>
   <div class="panel">
     <p class="kicker">focus gate</p>
-    <h1>Keep pushing.</h1>
-    <p class="msg" id="customMsg">Loading…</p>
+    <h1 id="dayCounter">Loading…</h1>
+    <p class="msg">Keep pushing. Make sure your work is done.</p>
 
     <div class="timer-row">
       <span class="timer-label">holding</span>
@@ -201,9 +201,9 @@
   const DELAY_SECONDS = 45;
   const WORKER_URL = "https://misty-king-bfd9.davidyiemail.workers.dev/";
 
-  // ---- days-remaining message ----
+  // ---- days-remaining headline ----
   const TARGET_DATE = new Date("2026-10-31T23:59:59-07:00"); // Pacific time
-  const msgEl = document.getElementById("customMsg");
+  const dayCounterEl = document.getElementById("dayCounter");
 
   function updateDaysMessage() {
     const now = new Date();
@@ -211,9 +211,9 @@
     const daysRemaining = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)));
 
     if (daysRemaining > 0) {
-      msgEl.textContent = `Make sure your work is done. ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} left in the window.`;
+      dayCounterEl.textContent = `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} left`;
     } else {
-      msgEl.textContent = "The window's closed. Keep pushing anyway.";
+      dayCounterEl.textContent = "Window's closed";
     }
   }
   updateDaysMessage();
