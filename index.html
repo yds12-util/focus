@@ -177,12 +177,12 @@
 <body>
   <div class="panel">
     <p class="kicker">focus gate</p>
-    <h1>Not yet.</h1>
-    <p class="msg" id="customMsg">Keep pushing. That's the whole job right now.</p>
+    <h1>Keep pushing.</h1>
+    <p class="msg" id="customMsg">Loading…</p>
 
     <div class="timer-row">
       <span class="timer-label">holding</span>
-      <span class="timer" id="timer">00:30</span>
+      <span class="timer" id="timer">00:45</span>
     </div>
 
     <div class="checklist">
@@ -198,8 +198,25 @@
 
 <script>
   // ---- config ----
-  const DELAY_SECONDS = 30;
+  const DELAY_SECONDS = 45;
   const WORKER_URL = "https://misty-king-bfd9.davidyiemail.workers.dev/";
+
+  // ---- days-remaining message ----
+  const TARGET_DATE = new Date("2026-10-31T23:59:59-07:00"); // Pacific time
+  const msgEl = document.getElementById("customMsg");
+
+  function updateDaysMessage() {
+    const now = new Date();
+    const msRemaining = TARGET_DATE - now;
+    const daysRemaining = Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24)));
+
+    if (daysRemaining > 0) {
+      msgEl.textContent = `Make sure your work is done. ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} left in the window.`;
+    } else {
+      msgEl.textContent = "The window's closed. Keep pushing anyway.";
+    }
+  }
+  updateDaysMessage();
 
   // ---- read destination from query string ----
   const params = new URLSearchParams(window.location.search);
