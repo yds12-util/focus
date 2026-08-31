@@ -4,124 +4,245 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Focus Gate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #111318;
-    --card: #1b1e26;
-    --accent: #5b8cff;
-    --accent-dim: #33405e;
-    --text: #eef0f4;
-    --text-dim: #9aa1b1;
+    --ink: #15161b;
+    --ink-panel: #1a1c22;
+    --hairline: #2b2d35;
+    --text: #ece7dd;
+    --text-dim: #8b8d97;
+    --amber: #c9975a;
+    --amber-dim: #6b5a3f;
+    --done: #7fae8b;
   }
   * { box-sizing: border-box; }
-  body {
+  html, body {
     margin: 0;
     min-height: 100vh;
+  }
+  body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg);
+    background: var(--ink);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(201, 151, 90, 0.05), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(201, 151, 90, 0.04), transparent 45%);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 24px;
   }
-  .card {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 40px 36px;
-    max-width: 420px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+
+  .panel {
+    width: 100%;
+    max-width: 400px;
   }
+
+  .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin: 0 0 18px;
+  }
+
   h1 {
-    font-size: 1.3rem;
-    margin: 0 0 8px;
-    font-weight: 600;
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-size: 2.1rem;
+    line-height: 1.15;
+    margin: 0 0 12px;
+    color: var(--text);
   }
+
   p.msg {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 1.05rem;
+    line-height: 1.5;
     color: var(--text-dim);
-    font-size: 0.95rem;
-    margin: 0 0 28px;
-    line-height: 1.4;
+    margin: 0 0 32px;
+    max-width: 38ch;
   }
-  .timer {
-    font-size: 3rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin: 8px 0 28px;
-    font-variant-numeric: tabular-nums;
+
+  .timer-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 18px 0;
+    margin-bottom: 28px;
   }
-  .notion-link {
-    display: inline-block;
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    background: var(--accent);
-    color: white;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin-bottom: 14px;
-    transition: opacity 0.15s ease;
-  }
-  .notion-link:hover { opacity: 0.9; }
-  button#unlock {
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: not-allowed;
-    background: var(--accent-dim);
-    color: var(--text-dim);
-    transition: background 0.2s ease, color 0.2s ease;
-  }
-  button#unlock.ready {
-    background: var(--accent);
-    color: white;
-    cursor: pointer;
-  }
-  button#unlock.ready:hover { opacity: 0.9; }
-  .dest {
-    margin-top: 20px;
+
+  .timer-label {
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem;
     color: var(--text-dim);
+  }
+
+  .timer {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 2.4rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--amber);
+    transition: color 0.4s ease;
+  }
+
+  .timer.done { color: var(--done); }
+
+  .checklist {
+    margin-bottom: 28px;
+  }
+
+  .checklist-heading {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    margin: 0 0 10px;
+  }
+
+  .checklist-loading, .checklist-error {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    padding: 4px 0;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 0.92rem;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+
+  .checklist-item .mark {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--text-dim);
+    position: relative;
+  }
+  .checklist-item.done .mark {
+    border-color: var(--done);
+    background: var(--done);
+  }
+  .checklist-item.done span.label {
+    color: var(--text-dim);
+    text-decoration: line-through;
+    text-decoration-color: var(--hairline);
+  }
+
+  button#unlock {
+    width: 100%;
+    padding: 15px;
+    background: transparent;
+    border: 1.5px solid var(--amber-dim);
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+    cursor: not-allowed;
+    transition: all 0.3s ease;
+  }
+  button#unlock.ready {
+    border-color: var(--amber);
+    color: var(--amber);
+    cursor: pointer;
+  }
+  button#unlock.ready:hover {
+    background: rgba(201, 151, 90, 0.08);
+  }
+
+  .dest {
+    margin-top: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    opacity: 0.6;
     word-break: break-all;
   }
 </style>
 </head>
 <body>
-  <div class="card">
+  <div class="panel">
+    <p class="kicker">focus gate</p>
     <h1>Not yet.</h1>
-    <p class="msg" id="customMsg">Keep pushing. Check your tasks first — then decide if this is really the break you want.</p>
-    <div class="timer" id="timer">00:30</div>
-    <a class="notion-link" id="notionLink" href="https://app.notion.com/p/eeefdb0401574f09a8023d8ed3581a01?v=3a0f8766e89f810eac10000c9120dd27" target="notion-checklist" rel="noopener">
-      Check your tasks in Notion →
-    </a>
-    <button id="unlock" disabled>Tasks done</button>
+    <p class="msg" id="customMsg">Keep pushing. That's the whole job right now.</p>
+
+    <div class="timer-row">
+      <span class="timer-label">holding</span>
+      <span class="timer" id="timer">00:30</span>
+    </div>
+
+    <div class="checklist">
+      <p class="checklist-heading">today</p>
+      <div id="checklist">
+        <div class="checklist-loading">loading…</div>
+      </div>
+    </div>
+
+    <button id="unlock" disabled>tasks done</button>
     <div class="dest" id="destDisplay"></div>
   </div>
 
 <script>
   // ---- config ----
   const DELAY_SECONDS = 30;
+  const WORKER_URL = "https://misty-king-bfd9.davidyiemail.workers.dev/";
 
   // ---- read destination from query string ----
-  // LeechBlock appends the originally-blocked URL; adjust the param name
-  // below if your LeechBlock version uses a different key (check the URL
-  // it redirects you to the first time it triggers).
   const params = new URLSearchParams(window.location.search);
   let dest = params.get("dest") || params.get("url") || params.get("target");
-
-  // Fallback: if no destination param is found, just don't wire the button
-  // to redirect anywhere destructive.
   if (dest && !/^https?:\/\//i.test(dest)) {
     dest = "https://" + dest;
   }
 
   const destDisplay = document.getElementById("destDisplay");
-  destDisplay.textContent = dest ? "Waiting to unlock: " + dest : "";
+  destDisplay.textContent = dest ? "→ " + dest : "";
+
+  // ---- fetch today's checklist ----
+  const checklistEl = document.getElementById("checklist");
+
+  async function loadChecklist() {
+    try {
+      const res = await fetch(WORKER_URL);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      if (!data.found) {
+        checklistEl.innerHTML = '<div class="checklist-error">no entry for today yet</div>';
+        return;
+      }
+
+      checklistEl.innerHTML = data.tasks
+        .map(
+          (t) => `
+        <div class="checklist-item ${t.done ? "done" : ""}">
+          <span class="mark"></span>
+          <span class="label">${t.name}</span>
+        </div>
+      `
+        )
+        .join("");
+    } catch (err) {
+      checklistEl.innerHTML =
+        '<div class="checklist-error">could not load tasks (' +
+        String(err.message || err) +
+        ")</div>";
+    }
+  }
+  loadChecklist();
 
   // ---- countdown ----
   let remaining = DELAY_SECONDS;
@@ -143,9 +264,12 @@
       clearInterval(interval);
       unlockBtn.disabled = false;
       unlockBtn.classList.add("ready");
-      unlockBtn.textContent = "Tasks done";
+      unlockBtn.textContent = "tasks done";
+      timerEl.classList.add("done");
+      timerEl.textContent = "00:00";
+    } else {
+      timerEl.textContent = formatTime(remaining);
     }
-    timerEl.textContent = formatTime(remaining);
   }, 1000);
 
   // ---- unlock button ----
@@ -154,8 +278,7 @@
     if (dest) {
       window.location.href = dest;
     } else {
-      // No destination found in the URL — nothing safe to redirect to.
-      unlockBtn.textContent = "No destination found";
+      unlockBtn.textContent = "no destination found";
     }
   });
 </script>
