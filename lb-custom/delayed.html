@@ -58,8 +58,17 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem; color: var(--text-dim);
   }
-  #lbCountdownText {
-    margin: 0;
+  /* The raw element LeechBlock drives — kept in the DOM and layout (not
+     display:none) in case its script checks visibility, but visually
+     hidden via the standard clip technique. */
+  .lb-raw {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  #prettyTimer {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 2.4rem; font-weight: 500;
     letter-spacing: 0.02em;
@@ -105,9 +114,10 @@
 
     <div class="timer-row">
       <span class="timer-label">holding</span>
-      <p id="lbCountdownText">
+      <p id="lbCountdownText" class="lb-raw">
         <span id="lbDelaySeconds">0</span>
       </p>
+      <span id="prettyTimer">00:00</span>
     </div>
     <p id="lbKeywordMatched">Keyword matched: <span id="lbKeywordMatch"></span></p>
 
@@ -154,6 +164,25 @@
     }
   }
   loadChecklist();
+
+  // ---- mirror LeechBlock's raw seconds countdown into MM:SS display ----
+  const rawSecondsEl = document.getElementById("lbDelaySeconds");
+  const prettyTimerEl = document.getElementById("prettyTimer");
+
+  function formatTime(totalSeconds) {
+    const s = Math.max(0, parseInt(totalSeconds, 10) || 0);
+    const m = Math.floor(s / 60).toString().padStart(2, "0");
+    const sec = (s % 60).toString().padStart(2, "0");
+    return m + ":" + sec;
+  }
+
+  function syncPrettyTimer() {
+    prettyTimerEl.textContent = formatTime(rawSecondsEl.textContent);
+  }
+  syncPrettyTimer(); // initial paint
+
+  const timerObserver = new MutationObserver(syncPrettyTimer);
+  timerObserver.observe(rawSecondsEl, { characterData: true, childList: true, subtree: true });
 
   // NOTE: no manual countdown or redirect logic here anymore.
   // LeechBlock's own injected script (blocked.js) drives #lbDelaySeconds
