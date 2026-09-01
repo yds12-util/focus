@@ -58,15 +58,21 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem; color: var(--text-dim);
   }
-  /* The raw element LeechBlock drives — kept in the DOM and layout (not
-     display:none) in case its script checks visibility, but visually
-     hidden via the standard clip technique. */
+  /* The raw element LeechBlock drives — kept in the DOM and in normal
+     document flow (not display:none, in case its script checks
+     visibility) but collapsed to zero size so it can't be seen or
+     overlap anything. No absolute positioning here, since that was
+     letting it escape its container and render on top of the pretty
+     timer. */
   .lb-raw {
-    position: absolute;
-    width: 1px; height: 1px;
+    display: inline-block;
+    width: 0;
+    height: 0;
     overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    font-size: 0;
+    line-height: 0;
   }
   #prettyTimer {
     font-family: 'IBM Plex Mono', monospace;
