@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Gate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #15161b;
+    --hairline: #2b2d35;
+    --text: #ece7dd;
+    --text-dim: #8b8d97;
+    --amber: #c9975a;
+    --done: #7fae8b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100vh; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background: var(--ink);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(201, 151, 90, 0.05), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(201, 151, 90, 0.04), transparent 45%);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 24px;
+  }
+  .panel { width: 100%; max-width: 400px; }
+  .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.06em;
+    color: var(--text-dim); margin: 0 0 18px;
+  }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 500; font-size: 2.1rem; line-height: 1.15;
+    margin: 0 0 12px; color: var(--text);
+  }
+  p.msg {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400; font-size: 1.05rem; line-height: 1.5;
+    color: var(--text-dim); margin: 0 0 32px; max-width: 38ch;
+  }
+  /* --- Required LeechBlock hooks ---
+     blocked.js (injected automatically by the extension on any lb-custom
+     URL) looks for these specific IDs to drive the REAL countdown and
+     perform a privileged unblock/redirect. Don't rename these IDs. */
+  .timer-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    padding: 18px 0; margin-bottom: 28px;
+  }
+  .timer-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem; color: var(--text-dim);
+  }
+  #lbCountdownText {
+    margin: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 2.4rem; font-weight: 500;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--amber);
+  }
+  #lbDelaySeconds { font-variant-numeric: tabular-nums; }
+  #lbKeywordMatched { display: none; } /* not used, but expected to exist */
+  /* --- end required hooks --- */
+
+  .checklist { margin-bottom: 10px; }
+  .checklist-heading {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.04em;
+    color: var(--text-dim); margin: 0 0 10px;
+  }
+  .checklist-loading, .checklist-error {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem; color: var(--text-dim); padding: 4px 0;
+  }
+  .checklist-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--hairline);
+    font-size: 0.92rem;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-item .mark {
+    width: 14px; height: 14px; flex-shrink: 0;
+    border: 1.5px solid var(--text-dim);
+  }
+  .checklist-item.done .mark { border-color: var(--done); background: var(--done); }
+  .checklist-item.done span.label {
+    color: var(--text-dim); text-decoration: line-through;
+    text-decoration-color: var(--hairline);
+  }
+</style>
+</head>
+<body>
+  <div class="panel">
+    <p class="kicker">focus gate</p>
+    <h1 id="dayCounter">Loading…</h1>
+    <p class="msg">Keep pushing. Make sure your work is done.</p>
+
+    <div class="timer-row">
+      <span class="timer-label">holding</span>
+      <p id="lbCountdownText">
+        <span id="lbDelaySeconds">0</span>
+      </p>
+    </div>
+    <p id="lbKeywordMatched">Keyword matched: <span id="lbKeywordMatch"></span></p>
+
+    <div class="checklist">
+      <p class="checklist-heading">today</p>
+      <div id="checklist">
+        <div class="checklist-loading">loading…</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const WORKER_URL = "https://misty-king-bfd9.davidyiemail.workers.dev/";
+
+  // ---- days-remaining headline ----
+  const TARGET_DATE = new Date("2026-10-31T23:59:59-07:00");
+  const dayCounterEl = document.getElementById("dayCounter");
+  function updateDaysMessage() {
+    const now = new Date();
+    const daysRemaining = Math.max(0, Math.ceil((TARGET_DATE - now) / (1000 * 60 * 60 * 24)));
+    dayCounterEl.textContent = daysRemaining > 0 ? `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} left` : "Window's closed";
+  }
+  updateDaysMessage();
+
+  // ---- checklist ----
+  const checklistEl = document.getElementById("checklist");
+  async function loadChecklist() {
+    try {
+      const res = await fetch(WORKER_URL);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      if (!data.found) {
+        checklistEl.innerHTML = '<div class="checklist-error">no entry for today yet</div>';
+        return;
+      }
+      checklistEl.innerHTML = data.tasks.map((t) => `
+        <div class="checklist-item ${t.done ? "done" : ""}">
+          <span class="mark"></span>
+          <span class="label">${t.name}</span>
+        </div>
+      `).join("");
+    } catch (err) {
+      checklistEl.innerHTML = '<div class="checklist-error">could not load tasks (' + String(err.message || err) + ")</div>";
+    }
+  }
+  loadChecklist();
+
+  // NOTE: no manual countdown or redirect logic here anymore.
+  // LeechBlock's own injected script (blocked.js) drives #lbDelaySeconds
+  // and performs the actual privileged unblock/redirect once the real
+  // delay period (set in LeechBlock's own options) elapses. This page
+  // no longer needs to — and can't reliably — trigger that itself.
+</script>
+</body>
+</html>
