@@ -58,23 +58,8 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.78rem; color: var(--text-dim);
   }
-  /* The raw element LeechBlock drives — kept in the DOM and in normal
-     document flow (not display:none, in case its script checks
-     visibility) but collapsed to zero size so it can't be seen or
-     overlap anything. No absolute positioning here, since that was
-     letting it escape its container and render on top of the pretty
-     timer. */
-  .lb-raw {
-    display: inline-block;
-    width: 0;
-    height: 0;
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
-    font-size: 0;
-    line-height: 0;
-  }
-  #prettyTimer {
+  #lbCountdownText {
+    margin: 0;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 2.4rem; font-weight: 500;
     letter-spacing: 0.02em;
@@ -120,10 +105,9 @@
 
     <div class="timer-row">
       <span class="timer-label">holding</span>
-      <p id="lbCountdownText" class="lb-raw">
+      <p id="lbCountdownText">
         <span id="lbDelaySeconds">0</span>
       </p>
-      <span id="prettyTimer">00:00</span>
     </div>
     <p id="lbKeywordMatched">Keyword matched: <span id="lbKeywordMatch"></span></p>
 
@@ -170,25 +154,6 @@
     }
   }
   loadChecklist();
-
-  // ---- mirror LeechBlock's raw seconds countdown into MM:SS display ----
-  const rawSecondsEl = document.getElementById("lbDelaySeconds");
-  const prettyTimerEl = document.getElementById("prettyTimer");
-
-  function formatTime(totalSeconds) {
-    const s = Math.max(0, parseInt(totalSeconds, 10) || 0);
-    const m = Math.floor(s / 60).toString().padStart(2, "0");
-    const sec = (s % 60).toString().padStart(2, "0");
-    return m + ":" + sec;
-  }
-
-  function syncPrettyTimer() {
-    prettyTimerEl.textContent = formatTime(rawSecondsEl.textContent);
-  }
-  syncPrettyTimer(); // initial paint
-
-  const timerObserver = new MutationObserver(syncPrettyTimer);
-  timerObserver.observe(rawSecondsEl, { characterData: true, childList: true, subtree: true });
 
   // NOTE: no manual countdown or redirect logic here anymore.
   // LeechBlock's own injected script (blocked.js) drives #lbDelaySeconds
